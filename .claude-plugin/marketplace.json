@@ -1,0 +1,15 @@
+{
+  "name": "arc-probe",
+  "owner": {
+    "name": "ARC Raiders",
+    "url": "https://github.com/vzco"
+  },
+  "plugins": [
+    {
+      "name": "arc-probe",
+      "source": "./plugins/arc-probe",
+      "description": "Process memory inspector for AI agents — 14 RE skills, disassembly, RTTI, breakpoints, struct mapping",
+      "version": "0.1.0"
+    }
+  ]
+}

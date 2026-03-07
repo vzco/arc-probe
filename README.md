@@ -25,7 +25,7 @@ probe.exe "rtti find CitadelPlayerPawn client.dll"
 probe.exe "pattern 48 8B 0D ?? ?? ?? ?? 48 85 C9 client.dll --resolve 3"
 ```
 
-> **status:** coming soon. the codebase is functional and actively developed — public release is being prepared.
+> **status:** early access. download binaries from [Releases](https://github.com/vzco/arc-probe/releases), install the Claude Code plugin, and start inspecting.
 
 ---
 
@@ -173,6 +173,69 @@ curl -s -X POST http://localhost:9996 -H "Content-Type: application/json" -d '{
 
 ---
 
+## installation
+
+### 1. download binaries
+
+grab the latest release from [Releases](https://github.com/vzco/arc-probe/releases):
+
+| file | purpose |
+|------|---------|
+| `probe.exe` | CLI client — sends commands, prints JSON |
+| `probe-inject.exe` | manual-map DLL injector |
+| `probe-shell.dll` | injected DLL (TCP server + all tools) |
+
+extract to a directory and add it to your PATH, or use full paths.
+
+**requirements:**
+- Windows 10/11 x64
+- administrator privileges (for cross-process memory access)
+
+### 2. install the claude code plugin
+
+```bash
+/plugin marketplace add vzco/arc-probe
+/plugin install arc-probe
+```
+
+this gives you 14 reverse engineering skills:
+
+| skill | description |
+|-------|-------------|
+| `/arc-probe:inject` | inject into a process and verify connection |
+| `/arc-probe:analyze-module` | deep module analysis — exports, RTTI, strings |
+| `/arc-probe:map-struct` | map a data structure from a memory address |
+| `/arc-probe:find-function` | locate a function by behavior or strings |
+| `/arc-probe:identify-class` | identify a C++ class via RTTI + vtable |
+| `/arc-probe:trace-writes` | find what code writes to an address |
+| `/arc-probe:find-string-xref` | trace from a string to referencing code |
+| `/arc-probe:follow-pointers` | navigate nested pointer chains |
+| `/arc-probe:make-signature` | generate byte signatures that survive updates |
+| `/arc-probe:resolve-rip` | resolve RIP-relative addresses |
+| `/arc-probe:re-handbook` | full RE techniques reference |
+| `/arc-probe:probe-bridge` | drive the GUI via Claude Bridge HTTP API |
+| `/arc-probe:probe-gui-struct` | build structs in the GUI from live memory |
+| `/arc-probe:probe-entity-scan` | scan game entities (Source 2 / Deadlock) |
+
+### 3. inject and go
+
+```bash
+# inject into your target process
+probe-inject.exe notepad.exe
+
+# verify the connection
+probe.exe ping
+
+# start exploring
+probe.exe status
+probe.exe "rtti scan Notepad.exe"
+probe.exe "dump 0x7FF701AB0000 64"
+```
+
+or let Claude do it: `/arc-probe:inject`
+
+---
+
 ## tutorials
 
 ### part 1: getting started
@@ -189,27 +252,27 @@ function discovery, cross-reference scanning, RTTI deep dives, vtable disassembl
 
 ---
 
-## architecture
+## components
 
-```
-arc-probe/
-├── src/                    # DLL source (injected component)
-│   ├── core/               #   memory read/write/scan, hooks
-│   ├── server/             #   TCP server, command dispatch, JSON
-│   └── commands/           #   65 command implementations
-├── cli/                    # probe.exe — CLI client
-├── injector/               # probe-inject.exe — manual PE mapper
-├── gui/                    # Tauri v2 desktop app
-│   ├── src-tauri/src/      #   Rust backend (TCP client, Bridge server)
-│   └── src/                #   React frontend (Zustand, Tailwind)
-├── mcp/                    # MCP server (Model Context Protocol)
-├── plugin/                 # Claude Code plugin with RE skills
-├── vendor/                 # Zydis 4.1.1, MinHook
-└── demo/                   # Demo target for testing
-```
+| component | description |
+|-----------|-------------|
+| `probe-shell.dll` (2.7 MB) | injected DLL: TCP server, 65 commands, Zydis x86-64 disassembler, VEH breakpoints, RTTI scanner, PE parser, string scanner, MinHook |
+| `probe-inject.exe` (710 KB) | manual-map injector (relocations, imports, TLS, SEH/.pdata, header erasure) |
+| `probe.exe` (181 KB) | CLI client: send command, print JSON, exit. REPL mode with no args |
+| GUI (Tauri v2) | desktop app — hex viewer, disassembler, struct editor, scanner, CFG viewer |
+| Claude Code plugin | 14 RE skills + agent instructions for autonomous reverse engineering |
+
+### vendor dependencies
+
+| library | version | license | purpose |
+|---------|---------|---------|---------|
+| [Zydis](https://github.com/zyantific/zydis) | 4.1.1 | MIT | x86-64 instruction decoder and formatter |
+| [MinHook](https://github.com/TsudaKageworst/minhook) | latest | BSD 2-Clause | x86/x64 function hooking |
 
 ---
 
 ## license
 
-coming soon.
+ARC Probe is source-available under a commercial license. Free for personal use, education, security research, and CTF competitions. Commercial use requires a paid license.
+
+See [LICENSE](LICENSE) for full terms.

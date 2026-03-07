@@ -1,0 +1,16 @@
+{
+  "name": "arc-probe",
+  "displayName": "ARC Probe - Process Memory Inspector for AI",
+  "description": "Inject into any Windows x64 process and inspect memory, disassemble code, scan patterns, set breakpoints — all from Claude Code. 14 skills for reverse engineering workflows.",
+  "version": "0.1.0",
+  "author": {
+    "name": "ARC Raiders",
+    "url": "https://github.com/vzco"
+  },
+  "repository": "https://github.com/vzco/arc-probe",
+  "license": "SEE LICENSE IN LICENSE",
+  "keywords": ["reverse-engineering", "memory-inspection", "disassembly", "process-analysis", "windows", "x86-64"],
+  "platforms": ["win32"],
+  "skills": "./skills/",
+  "agents": "./agents/"
+}

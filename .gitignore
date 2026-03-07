@@ -1,0 +1,8 @@
+# Release binaries (uploaded as GitHub Release assets, not committed)
+releases/
+*.exe
+*.dll
+*.zip
+*.pdb
+*.ilk
+*.obj
