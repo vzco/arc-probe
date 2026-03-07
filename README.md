@@ -95,12 +95,14 @@ probe-shell.dll          probe-inject.exe          probe.exe (CLI)
 arc probe is designed so an AI agent can perform the entire reverse engineering workflow autonomously:
 
 1. **connect** to the target process and enumerate modules
-2. **discover classes** via RTTI scanning and inheritance resolution
-3. **find globals** through pattern scanning with RIP-relative resolution
-4. **build struct definitions** from schema dumps, verified against live memory
-5. **wire pointer drill-down** between structs for recursive exploration
-6. **set breakpoints** to trace what code reads/writes specific addresses
-7. **annotate everything** with labels, bookmarks, and comments in the GUI
+2. **discover all functions** in a module — merging .pdata boundaries, PE exports, and RTTI vtable names
+3. **scan cross-references** — find every CALL, JMP, LEA, and MOV that references a given address
+4. **discover classes** via RTTI scanning and inheritance resolution
+5. **find globals** through pattern scanning with RIP-relative resolution
+6. **build struct definitions** from schema dumps, verified against live memory
+7. **wire pointer drill-down** between structs for recursive exploration
+8. **set breakpoints** to trace what code reads/writes specific addresses
+9. **annotate everything** with labels, bookmarks, function names, and comments in the GUI
 
 the human sees every step in the GUI as it happens. both can work simultaneously — the AI automates the tedious memory mapping while you focus on understanding the results.
 
@@ -171,11 +173,19 @@ curl -s -X POST http://localhost:9996 -H "Content-Type: application/json" -d '{
 
 ---
 
-## tutorial
+## tutorials
+
+### part 1: getting started
 
 the full walkthrough — from connecting to a live process, through RTTI discovery, pattern scanning, and building 12 annotated struct definitions with 218 fields and recursive pointer drill-down — all driven by Claude as an AI agent.
 
-**[read the tutorial &rarr;](docs/tutorial.md)**
+**[read part 1 &rarr;](docs/tutorial.md)**
+
+### part 2: advanced static analysis
+
+function discovery, cross-reference scanning, RTTI deep dives, vtable disassembly, Source 2 interface enumeration, and the complete agent-driven analysis workflow. 16 screenshots from a live Deadlock session.
+
+**[read part 2 &rarr;](docs/advanced-tutorial.md)**
 
 ---
 
