@@ -11,20 +11,6 @@ the GUI exists to show the human what the AI is doing. a human can drive it. cla
 - **struct editor** with live memory values and recursive pointer drill-down
 - **works with any x64 process** — no game-specific code required
 
-```bash
-# inject into a running process
-probe-inject.exe --pid 1234
-
-# read an integer from memory
-probe.exe "read_int client.dll+0x354"
-
-# find a C++ class by RTTI
-probe.exe "rtti find CitadelPlayerPawn client.dll"
-
-# pattern scan with wildcard bytes and auto-resolve
-probe.exe "pattern 48 8B 0D ?? ?? ?? ?? 48 85 C9 client.dll --resolve 3"
-```
-
 > **status:** early access. download binaries from [Releases](https://github.com/vzco/arc-probe/releases), install the Claude Code plugin, and start inspecting.
 
 ---
@@ -63,9 +49,85 @@ the AI built 12 struct definitions covering a 14-level C++ inheritance chain —
 
 ---
 
-## how it works
+## get started
 
-three binaries:
+### 1. download
+
+grab the latest release from **[Releases](https://github.com/vzco/arc-probe/releases)**. extract the zip — you get three files:
+
+| file | size | what it does |
+|------|------|-------------|
+| `probe-shell.dll` | 2.7 MB | the injected DLL — TCP server with 65 commands, Zydis disassembler, VEH breakpoints, RTTI scanner |
+| `probe-inject.exe` | 710 KB | manual-map DLL injector — no LoadLibrary, DLL won't show in module list |
+| `probe.exe` | 910 KB | CLI client — sends a command, prints JSON, exits. REPL mode with no args |
+
+add the folder to your PATH or use full paths. needs **Windows 10/11 x64** and **administrator privileges**.
+
+### 2. inject and explore
+
+```bash
+# inject into any running process
+probe-inject.exe notepad.exe
+
+# health check
+probe.exe ping
+# {"ok":true,"data":{"response":"pong"}}
+
+# what's loaded?
+probe.exe --pretty status
+
+# hex dump the PE header
+probe.exe "dump 0x7FF701AB0000 64"
+
+# disassemble 5 instructions
+probe.exe "disasm 0x7FF701AB1000 5"
+
+# find all C++ classes via RTTI
+probe.exe "rtti scan Notepad.exe --limit 10"
+
+# pattern scan with wildcards
+probe.exe "pattern 48 8B 0D ?? ?? ?? ?? 48 85 C9 client.dll --resolve 3"
+```
+
+### 3. install the claude code plugin
+
+```bash
+/plugin marketplace add vzco/arc-probe
+/plugin install arc-probe
+```
+
+now you have 14 reverse engineering skills. claude can inject, scan, disassemble, map structs, trace writes, and build full class hierarchies — autonomously or alongside you.
+
+say `/arc-probe:inject` to start, or just describe what you want: "find the function that handles player damage" and claude will orchestrate the right tools.
+
+---
+
+## claude code skills
+
+the plugin gives claude structured playbooks for common RE tasks. each skill is a step-by-step workflow that claude follows, using the probe CLI under the hood.
+
+| skill | what it does |
+|-------|-------------|
+| `/arc-probe:inject` | inject into a process and verify the TCP connection |
+| `/arc-probe:analyze-module` | deep analysis of a loaded DLL — exports, RTTI classes, strings, key functions |
+| `/arc-probe:map-struct` | map a data structure from a memory address — hex dump, RTTI, field-by-field |
+| `/arc-probe:find-function` | locate a function by behavior, string references, RTTI, or hardware breakpoints |
+| `/arc-probe:identify-class` | identify a C++ class from an object pointer — RTTI resolve, inheritance chain, vtable |
+| `/arc-probe:trace-writes` | find what code reads/writes a memory address using hardware breakpoints (DR0-DR3) |
+| `/arc-probe:find-string-xref` | trace from a known string to the code that references it via LEA RIP-relative |
+| `/arc-probe:follow-pointers` | navigate nested pointer chains step by step with validation |
+| `/arc-probe:make-signature` | generate a byte signature for a function that survives binary updates |
+| `/arc-probe:resolve-rip` | resolve RIP-relative addresses from disassembled x86-64 instructions |
+| `/arc-probe:re-handbook` | full reverse engineering reference — techniques, patterns, fallback strategies |
+| `/arc-probe:probe-bridge` | drive the GUI via the Claude Bridge HTTP API (create structs, navigate, label) |
+| `/arc-probe:probe-gui-struct` | build struct definitions in the GUI backed by live memory reads |
+| `/arc-probe:probe-entity-scan` | scan and resolve game entities from a live Source 2 process |
+
+the plugin also includes an **RE assistant agent** — a specialized persona with the full x86-64 calling convention reference, struct identification patterns, and Source 2 engine knowledge baked in.
+
+---
+
+## how it works
 
 ```
 probe-shell.dll          probe-inject.exe          probe.exe (CLI)
@@ -84,9 +146,9 @@ probe-shell.dll          probe-inject.exe          probe.exe (CLI)
 
 **protocol:** send `command\n` over TCP, receive `{"ok":true,"data":{...}}\n`. all memory access is SEH-wrapped — bad addresses return errors, never crash.
 
-**the GUI** is a Tauri v2 app (Rust backend + React frontend) that connects to the same TCP server. the **Claude Bridge** (`localhost:9996`) accepts JSON POST requests to drive the GUI — create structs, set labels, navigate tabs, read memory — all programmatically.
+**the GUI** is a Tauri v2 app (Rust backend + React frontend) that connects to the same TCP server. the **Claude Bridge** (`localhost:9996`) accepts JSON POST requests to drive the GUI — create structs, set labels, navigate tabs — all programmatically.
 
-**the injector** uses manual PE mapping. the DLL doesn't appear in the target's module list.
+**the injector** uses manual PE mapping — resolves relocations, imports, TLS callbacks, SEH/.pdata entries. the DLL does not appear in the target's module list.
 
 ---
 
@@ -136,103 +198,87 @@ curl -s -X POST http://localhost:9996 -H "Content-Type: application/json" -d '{
 | `read_float <addr>` | 32-bit float |
 | `read_string <addr>` | null-terminated string |
 | `read_chain <addr> <off1> ...` | follow pointer chain |
-| `dump <addr> <size>` | hex dump with ASCII |
+| `dump <addr> <size>` | hex dump with ASCII (max 256) |
 | `write <addr> <hex>` | write raw bytes |
 | `write_int <addr> <val>` | write 32-bit integer |
+| `write_float <addr> <val>` | write 32-bit float |
+| `write_ptr <addr> <val>` | write 8-byte pointer |
 
 ### search & disassembly
 
 | command | description |
 |---------|-------------|
-| `pattern <hex> [module]` | IDA-style byte pattern with `??` wildcards |
-| `disasm <addr> [count]` | disassemble N instructions |
-| `disasm_function <addr>` | disassemble until RET |
-| `generate_sig <addr>` | create a byte signature for a function |
+| `pattern <hex> [module] [--resolve N]` | IDA-style byte pattern with `??` wildcards |
+| `disasm <addr> [count]` | disassemble N instructions (Zydis, Intel syntax) |
+| `disasm func <addr>` | disassemble until RET |
+| `sig <addr> [size]` | generate a byte signature for a function |
 
-### RTTI & modules
+### RTTI & classes
 
 | command | description |
 |---------|-------------|
-| `rtti find <name>` | search for class by partial name |
-| `rtti hierarchy <class>` | get inheritance chain |
-| `rtti vtable <class>` | vtable address and entries |
-| `modules list` | loaded modules with bases |
-| `modules info <name>` | detailed module info |
-| `pe exports <module>` | exported functions |
+| `rtti resolve <addr>` | identify C++ class from object pointer |
+| `rtti scan <module>` | discover all RTTI classes in a module |
+| `rtti find <name> [module]` | search for class by partial name |
+| `rtti hierarchy <class> [module]` | get full inheritance chain |
+| `rtti vtable <class> [module]` | vtable address and virtual function entries |
+
+### modules & PE
+
+| command | description |
+|---------|-------------|
+| `modules list` | loaded modules with base addresses |
+| `modules info <name>` | detailed module info (sections, exports) |
+| `pe header <module>` | full PE header (machine, timestamp, security flags) |
+| `pe sections <module>` | PE sections with RVA, size, permissions |
+| `pe exports <module>` | exported functions with RVAs |
+| `pe imports <module>` | imported DLLs and functions |
+
+### strings
+
+| command | description |
+|---------|-------------|
+| `strings scan <module>` | discover printable strings in PE sections |
+| `strings find <text> [module]` | search for specific text |
+| `strings xref <addr> <module>` | find code that references a string address |
 
 ### breakpoints
 
 | command | description |
 |---------|-------------|
 | `bp set <addr>` | software breakpoint (INT3) |
-| `hwbp set <addr> <access> <size>` | hardware breakpoint (DR0-DR3) |
-| `bp log <id>` | register snapshots from hits |
-| `threads stack <tid>` | walk call stack |
+| `bp del <id>` | remove breakpoint, restore original byte |
+| `bp list` | list all breakpoints with hit counts |
+| `bp log [id]` | register snapshots (RAX-R15, RIP, RFLAGS) from hits |
+| `hwbp set <addr> [r\|w\|x] [1\|2\|4\|8]` | hardware breakpoint (4 slots max) |
+| `hwbp del <id>` | remove hardware breakpoint |
 
-[full command reference (65 commands) &rarr;](docs/commands.md)
+### threads
 
----
+| command | description |
+|---------|-------------|
+| `threads list` | all threads with TID, priority, start module |
+| `threads info <tid>` | TEB, stack base/limit, registers |
+| `threads stack <tid>` | walk call stack with module resolution |
+| `registers [tid]` | dump all registers |
 
-## installation
+### interfaces (Source 2)
 
-### 1. download binaries
+| command | description |
+|---------|-------------|
+| `interfaces list [module]` | walk CreateInterface registry |
+| `interfaces vtable <name>` | read interface vtable entries |
+| `interfaces dump <name>` | full interface analysis |
 
-grab the latest release from [Releases](https://github.com/vzco/arc-probe/releases):
+### watch
 
-| file | purpose |
-|------|---------|
-| `probe.exe` | CLI client — sends commands, prints JSON |
-| `probe-inject.exe` | manual-map DLL injector |
-| `probe-shell.dll` | injected DLL (TCP server + all tools) |
+| command | description |
+|---------|-------------|
+| `watch <addr> <size> [interval]` | poll memory for changes |
+| `unwatch <id\|all>` | stop watching |
+| `watchlist` | list active watchpoints |
 
-extract to a directory and add it to your PATH, or use full paths.
-
-**requirements:**
-- Windows 10/11 x64
-- administrator privileges (for cross-process memory access)
-
-### 2. install the claude code plugin
-
-```bash
-/plugin marketplace add vzco/arc-probe
-/plugin install arc-probe
-```
-
-this gives you 14 reverse engineering skills:
-
-| skill | description |
-|-------|-------------|
-| `/arc-probe:inject` | inject into a process and verify connection |
-| `/arc-probe:analyze-module` | deep module analysis — exports, RTTI, strings |
-| `/arc-probe:map-struct` | map a data structure from a memory address |
-| `/arc-probe:find-function` | locate a function by behavior or strings |
-| `/arc-probe:identify-class` | identify a C++ class via RTTI + vtable |
-| `/arc-probe:trace-writes` | find what code writes to an address |
-| `/arc-probe:find-string-xref` | trace from a string to referencing code |
-| `/arc-probe:follow-pointers` | navigate nested pointer chains |
-| `/arc-probe:make-signature` | generate byte signatures that survive updates |
-| `/arc-probe:resolve-rip` | resolve RIP-relative addresses |
-| `/arc-probe:re-handbook` | full RE techniques reference |
-| `/arc-probe:probe-bridge` | drive the GUI via Claude Bridge HTTP API |
-| `/arc-probe:probe-gui-struct` | build structs in the GUI from live memory |
-| `/arc-probe:probe-entity-scan` | scan game entities (Source 2 / Deadlock) |
-
-### 3. inject and go
-
-```bash
-# inject into your target process
-probe-inject.exe notepad.exe
-
-# verify the connection
-probe.exe ping
-
-# start exploring
-probe.exe status
-probe.exe "rtti scan Notepad.exe"
-probe.exe "dump 0x7FF701AB0000 64"
-```
-
-or let Claude do it: `/arc-probe:inject`
+65 commands total. every response is `{"ok":true,"data":{...}}` or `{"ok":false,"error":"..."}`. addresses accept hex with or without `0x` prefix, and module-relative format like `client.dll+0x354`.
 
 ---
 
@@ -252,17 +298,7 @@ function discovery, cross-reference scanning, RTTI deep dives, vtable disassembl
 
 ---
 
-## components
-
-| component | description |
-|-----------|-------------|
-| `probe-shell.dll` (2.7 MB) | injected DLL: TCP server, 65 commands, Zydis x86-64 disassembler, VEH breakpoints, RTTI scanner, PE parser, string scanner, MinHook |
-| `probe-inject.exe` (710 KB) | manual-map injector (relocations, imports, TLS, SEH/.pdata, header erasure) |
-| `probe.exe` (181 KB) | CLI client: send command, print JSON, exit. REPL mode with no args |
-| GUI (Tauri v2) | desktop app — hex viewer, disassembler, struct editor, scanner, CFG viewer |
-| Claude Code plugin | 14 RE skills + agent instructions for autonomous reverse engineering |
-
-### vendor dependencies
+## vendor dependencies
 
 | library | version | license | purpose |
 |---------|---------|---------|---------|
