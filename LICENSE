@@ -1,0 +1,76 @@
+ARC Probe License
+
+Copyright (c) 2026 ARC Raiders. All rights reserved.
+
+1. GRANT OF LICENSE
+
+   You are granted a non-exclusive, non-transferable, revocable license to
+   use the ARC Probe software ("Software") under the following conditions.
+
+2. PERMITTED USE
+
+   The Software may be used free of charge for:
+
+   a) Personal, non-commercial use
+   b) Educational purposes and academic research
+   c) Security research and vulnerability assessment on systems you own
+      or have written authorization to test
+   d) Capture The Flag (CTF) competitions
+   e) Evaluation and testing
+
+3. COMMERCIAL USE
+
+   Any use of the Software for commercial purposes — including but not
+   limited to use within a business, for paid consulting, as part of a
+   commercial product, or for revenue-generating activities — requires a
+   separate commercial license. Contact the copyright holder for terms.
+
+4. RESTRICTIONS
+
+   You may NOT:
+
+   a) Redistribute, sublicense, sell, or transfer the Software or any
+      portion thereof without written permission
+   b) Reverse engineer, decompile, or disassemble the Software binaries
+   c) Remove or alter any copyright notices or license terms
+   d) Use the Software to develop a competing product
+   e) Use the Software for unauthorized access to systems you do not own
+      or have permission to test
+
+5. PLUGIN AND SKILL FILES
+
+   The Claude Code plugin files (skills, agents, and configuration) included
+   in this repository are provided under this same license. They may be
+   installed and used with the Software but may not be redistributed
+   separately.
+
+6. THIRD-PARTY COMPONENTS
+
+   The Software includes the following third-party components under their
+   own licenses:
+
+   - Zydis (MIT License) — https://github.com/zyantific/zydis
+   - MinHook (BSD 2-Clause License) — https://github.com/TsudaKageworst/minhook
+
+   See THIRD_PARTY_LICENSES for full third-party license texts.
+
+7. NO WARRANTY
+
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+   OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT.
+   IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES,
+   OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT, OR
+   OTHERWISE, ARISING FROM, OUT OF, OR IN CONNECTION WITH THE SOFTWARE OR
+   THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+8. TERMINATION
+
+   This license is effective until terminated. It terminates automatically
+   if you fail to comply with any of its terms. Upon termination, you must
+   destroy all copies of the Software in your possession.
+
+9. GOVERNING LAW
+
+   This license shall be governed by and construed in accordance with
+   applicable law, without regard to conflict of law provisions.
