@@ -11,6 +11,16 @@ Load this when starting an investigation session. It covers the "what to do when
 
 ---
 
+## Sending commands
+
+Three methods, use whichever is available:
+
+1. **CLI**: `probe.exe "<command>"` → JSON to stdout
+2. **TCP**: `127.0.0.1:9998` — send `command\n`, receive JSON
+3. **HTTP Bridge**: `POST http://localhost:9996` with `{"action":"probe","command":"..."}` (requires GUI)
+
+---
+
 ## Reading memory safely
 
 **Always expect failure.** Every `probe_read_*` call can return an error if the address is invalid. ARC Probe wraps all reads in SEH so the target won't crash, but you need to handle errors.
@@ -26,6 +36,35 @@ Load this when starting an investigation session. It covers the "what to do when
 - Max 4096 bytes per read — split into chunks for larger regions
 - Use `probe_dump` for visual inspection (max 256 bytes, includes ASCII)
 - Use `probe_read` for raw hex when you need to parse specific bytes
+
+---
+
+## Writing memory safely
+
+**Write commands:**
+- `write <addr> <hex>` — raw bytes (for instruction patching)
+- `write_int <addr> <value>` — 32-bit integer
+- `write_float <addr> <value>` — 32-bit float
+- `write_ptr <addr> <value>` — 8-byte pointer
+
+**Rules:**
+1. **Always read first** — record the original value before writing
+2. **Verify after writing** — read the address again to confirm the change
+3. **Never write to code sections** unless intentionally patching instructions (and record original bytes)
+4. **Networked values** (health, position in multiplayer) may be overwritten by the server on the next tick
+5. **Bool fields** in Source 2 may be `uint8` (1 byte) or `int32` (4 bytes) — check the schema
+
+**Instruction patching:**
+- NOP = `90` (1 byte per NOP, use `9090909090` for a 5-byte CALL)
+- INT3 = `CC` (software breakpoint)
+- RET = `C3` (force immediate return)
+- Always save and restore original bytes
+
+**Common pitfalls:**
+- Writing to a freed object → crash on next access
+- Writing `write_int` to a `uint8` field → overwrites 3 adjacent bytes
+- Writing to a pointer field with a bad address → crash when dereferenced
+- Modifying vtable entries → all instances of that class are affected
 
 ---
 

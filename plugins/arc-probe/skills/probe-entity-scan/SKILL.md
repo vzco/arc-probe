@@ -8,6 +8,14 @@ argument-hint: [entity_type]
 
 Scan live Deadlock entities via the probe bridge and display them in the ARC Probe GUI.
 
+## CRITICAL: Do NOT Assume Offsets Are Current
+
+- Game offsets change with EVERY patch. Never assume hardcoded offsets from CLAUDE.md, memory files, or training data are correct.
+- ALWAYS verify offsets against the latest schema dump before using them. The user may provide a fresh dump location.
+- If an entity list pointer returns NULL or a read returns suspicious values (e.g., pointer-like values where health should be), the offsets are likely stale — do NOT continue blindly.
+- Ask the user for the current schema dump location or use pattern scanning to re-derive offsets dynamically.
+- Never go down a rabbit hole with old data. Check first, then proceed.
+
 ## Prerequisites
 
 - ARC Probe GUI running with bridge on `:9996`

@@ -130,12 +130,34 @@ Compare with what the GUI shows. Enable "Live" mode in the toolbar for auto-refr
 |------|------|---------|
 | `pointer` | 8 | Pointers, vtables, scene nodes |
 | `int32` | 4 | Health, team, counts, enums |
-| `uint32` | 4 | Handles, flags, unsigned values |
-| `float` | 4 | Coordinates, time, speed |
-| `bool` | 1 | Flags (0/1) |
+| `uint32` | 4 | Unsigned values, raw flags |
+| `float` | 4 | Single coordinate, speed |
+| `bool` | 1 | Flags (click to toggle in GUI) |
 | `uint8` | 1 | Small enums, team number |
 | `int64` | 8 | Steam IDs, large counters |
-| `uint64` | 8 | Bitmasks, handles |
+| `uint64` | 8 | Bitmasks |
+| `vec2` | 8 | 2D vectors (2 floats: X, Y) |
+| `vec3` | 12 | 3D positions/velocities (3 floats: X, Y, Z) |
+| `qangle` | 12 | Angles (3 floats: Pitch, Yaw, Roll) |
+| `color32` | 4 | RGBA color (4 bytes, has color picker in GUI) |
+| `colorf` | 16 | RGBA color (4 floats 0.0-1.0, has color picker) |
+| `matrix3x4` | 48 | Transform matrix (12 floats) |
+| `flags` | 4 | Bitmask flags (displayed as hex 0x00000000) |
+| `enum32` | 4 | Named enum values (int32 display) |
+| `handle` | 4 | Entity handle (#index extracted via val & 0x7FFF) |
+| `gametime` | 4 | GameTime_t (float displayed as seconds, e.g., `12.5s`) |
+| `string_ptr` | 8 | Pointer to null-terminated string |
+
+### Inline Editing
+
+All scalar and compound values are **editable** in the GUI — click any value to enter edit mode:
+- **bool**: Click to toggle instantly (no input needed)
+- **Integers/floats**: Click value, type new value, press Enter
+- **vec2/vec3/qangle**: Multi-input with labeled fields (X/Y/Z or P/Y/R)
+- **color32/colorf**: RGBA inputs + color swatch with color picker
+- **flags/handle**: Hex input (0x prefix)
+
+Writes are sent via the probe's `write_int`/`write_float`/`write` TCP commands.
 
 ## Tips
 

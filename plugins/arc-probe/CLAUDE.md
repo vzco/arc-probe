@@ -1,12 +1,57 @@
 # ARC Probe - Agent Instructions
 
-ARC Probe is a process memory inspection toolkit designed for LLM agents. It consists of a lightweight DLL injected into a target Windows process and an MCP server that exposes memory inspection tools to Claude Code. You read, write, disassemble, and search process memory using the `probe_*` MCP tools.
+ARC Probe is a process memory inspection toolkit designed for LLM agents. It consists of a lightweight DLL injected into a target Windows process that exposes 65 commands over TCP. You read, write, disassemble, and search process memory through any of the three command delivery methods below.
 
 ## Prerequisites
 
 - ARC Probe DLL must be injected into the target process
-- The probe's TCP server must be listening (default: `127.0.0.1:9999`)
-- MCP server must be built: `cd mcp && npm install && npm run build`
+- The probe's TCP server must be listening (default: `127.0.0.1:9998`)
+
+## How to Send Commands
+
+There are three ways to send commands to the probe. Use whichever is available:
+
+### 1. CLI (simplest, always available)
+
+```bash
+probe.exe "<command>"
+```
+
+Returns JSON to stdout. Exit code 0 = `ok:true`, 1 = error.
+
+```bash
+probe.exe "status"
+probe.exe "read_int 0x055EA1C28FE8+0x354"
+probe.exe "write_int 0x055EA1C28FE8+0x354 999"
+```
+
+### 2. TCP (direct socket, for scripting)
+
+Connect to `127.0.0.1:9998`. Send `command\n`, receive `{"ok":true,"data":{...}}\n`.
+
+```powershell
+$tcp = New-Object System.Net.Sockets.TcpClient('127.0.0.1', 9998)
+$s = $tcp.GetStream()
+$w = New-Object System.IO.StreamWriter($s); $w.AutoFlush = $true
+$r = New-Object System.IO.StreamReader($s)
+$w.WriteLine('read_int 0x055EA1C28FE8+0x354')
+$r.ReadLine()
+$tcp.Close()
+```
+
+### 3. HTTP Bridge (when GUI is running)
+
+```bash
+curl -s -X POST http://localhost:9996 \
+  -H "Content-Type: application/json" \
+  -d '{"action":"probe","command":"read_int 0x055EA1C28FE8+0x354"}'
+```
+
+The bridge also supports `navigate`, `store`, `activity`, and `batch` actions for GUI control. See the `probe-bridge` skill for details.
+
+### MCP Tools (optional)
+
+If the MCP server is connected, commands are available as `probe_*` tools (e.g., `probe_read_int`, `probe_write_float`). The MCP server wraps the same TCP commands.
 
 ## Tool Reference
 

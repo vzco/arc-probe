@@ -90,4 +90,22 @@ Map out a data structure from a memory address.
 - Arrays of same-typed values are easy to spot in hex dumps
 - Strings in Source 2 are usually stored as pointers to CUtlString or const char*
 - Bit fields and packed booleans are common in game engines
-- Watch for VectorN types: 3 consecutive floats = Vec3, 4 = Vec4/Quaternion
+
+## Compound Type Detection Patterns
+
+When analyzing hex dumps, look for these compound type signatures:
+
+| Pattern | Type | Size | How to recognize |
+|---------|------|------|-----------------|
+| 3 consecutive floats at 4-aligned offset | `vec3` | 12 | Position/velocity — values in the 100s-1000s range (world coords) |
+| 2 consecutive floats at 4-aligned offset | `vec2` | 8 | 2D coords — check the next 4 bytes aren't also a float (would be vec3) |
+| 3 floats in degree range (0-360) | `qangle` | 12 | Angles — pitch/yaw/roll, typically -180 to 360 |
+| 4 bytes where 4th byte (alpha) > 0x80 | `color32` | 4 | RGBA — at least one RGB channel > 10, alpha usually 0xFF |
+| 4 consecutive 0.0-1.0 range floats | `colorf` | 16 | RGBA float color — common in shaders/materials |
+| 12 consecutive floats (48 bytes) | `matrix3x4` | 48 | Transform matrix — rotation + translation |
+| uint32 where `(val & 0x7FFF) < 16384` and upper bits non-zero | `handle` | 4 | Entity handle — CHandle in Source 2 |
+| Float that matches game uptime | `gametime` | 4 | GameTime_t — monotonically increasing |
+| Pointer to ASCII text | `string_ptr` | 8 | const char* — dereference and read string to verify |
+| uint32 with specific bit patterns | `flags` | 4 | Bitmask — displayed as hex, individual bits are meaningful |
+
+The GUI's **auto-detect** (Inspect button) uses these heuristics automatically. The inspector panel (right side) shows all possible interpretations at a selected offset, including compound types with color swatches for color32/colorf.
