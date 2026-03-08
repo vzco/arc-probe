@@ -5,7 +5,7 @@ A comprehensive reverse-engineering reference for Valve's Panorama UI system as 
 **Target game:** Deadlock (`deadlock.exe`)
 **Engine:** Source 2 (shared with CS2, Dota 2)
 **Key modules:** `panorama.dll`, `panoramauiclient.dll`, `client.dll`, `engine2.dll`
-**Schema source:** source2gen SDK dump (2026-03-08)
+**Schema source:** dezlock-dump (2026-03-08)
 
 ---
 
@@ -1344,7 +1344,7 @@ Based on analysis of Source 2 games and Deadlock HUD panel names, likely dialog 
 
 ## Appendix C: Schema Dump File Locations
 
-All data in this document was sourced from the source2gen SDK dump:
+All data in this document was sourced from the dezlock-dump:
 
 ```
 E:\WEB_PROJECTS\ARCRAIDERS\dezlock-dump\build\bin\Release\schema-dump\deadlock\
