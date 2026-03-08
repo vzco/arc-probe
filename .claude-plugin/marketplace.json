@@ -9,7 +9,7 @@
       "name": "arc-probe",
       "source": "./plugins/arc-probe",
       "description": "Process memory inspector for AI agents — 31 RE skills, disassembly, RTTI, breakpoints, struct mapping",
-      "version": "0.2.1"
+      "version": "0.2.2"
     }
   ]
 }
