@@ -2,7 +2,7 @@
   "name": "arc-probe",
   "displayName": "ARC Probe - Process Memory Inspector for AI",
   "description": "Inject into any Windows x64 process and inspect memory, disassemble code, scan patterns, set breakpoints — all from Claude Code. 14 skills for reverse engineering workflows.",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "author": {
     "name": "ARC Raiders",
     "url": "https://github.com/vzco"
