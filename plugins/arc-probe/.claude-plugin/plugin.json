@@ -11,6 +11,5 @@
   "license": "SEE LICENSE IN LICENSE",
   "keywords": ["reverse-engineering", "memory-inspection", "disassembly", "process-analysis", "windows", "x86-64"],
   "platforms": ["win32"],
-  "skills": "./skills/",
-  "agents": "./agents/"
+  "skills": "./skills/"
 }
